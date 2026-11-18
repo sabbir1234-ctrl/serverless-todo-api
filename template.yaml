@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Todo API using AWS Lambda and Python
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 10
+    MemorySize: 128
+
+Resources:
+
+  TodoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: TodoTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  CreateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: create_todo/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: TodoTable
+      Environment:
+        Variables:
+          TABLE_NAME: TodoTable
+      Events:
+        CreateTodo:
+          Type: Api
+          Properties:
+            Path: /todos
+            Method: post
+
+  GetTodosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: get_todos/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: TodoTable
+      Environment:
+        Variables:
+          TABLE_NAME: TodoTable
+      Events:
+        GetTodos:
+          Type: Api
+          Properties:
+            Path: /todos
+            Method: get
+
+  GetTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: get_todo/
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: TodoTable
+      Environment:
+        Variables:
+          TABLE_NAME: TodoTable
+      Events:
+        GetTodo:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: get
+
+  DeleteTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: delete_todo/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: TodoTable
+      Environment:
+        Variables:
+          TABLE_NAME: TodoTable
+      Events:
+        DeleteTodo:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: delete
